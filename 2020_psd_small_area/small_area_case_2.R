@@ -144,7 +144,7 @@ for (sim_id in 1:n_sim) {
       data.frame(
         sim_id=rep(sim_id, 3),
         fips=rep(cq[row_ix, "fips"], 3),
-        method=c("posterior", "naive", "postprocessed"),
+        method=c("ConstrainedPosterior", "Naive", "PostProcessed"),
         p1=c(post_p1, naive_p1, pp_p1)
       )
     )
@@ -160,6 +160,8 @@ fips_names = data.frame(
           "SE Fairbanks", "VC", "WP")
 )
 res = merge(res, fips_names, by="fips")
+res$method = factor(res$method, 
+                    levels=c("Naive", "PostProcessed", "ConstrainedPosterior"))
 
 # small county data 
 small_counties = res[res$cname %in% c("Nome", "Haines", "Prince of Wales"), ]
@@ -195,5 +197,5 @@ ggplot(data=res) +
   xlab("Probability of rejecting H0: county mortality rate <= national average") + 
   ylab("Density") +
   theme(strip.text.y = element_text(size=6)) + 
-  ggtitle("Alaskan non-Hispanic White Mortality Rate Hypothesis Testing Posterior Power (Selected Small Counties)")
+  ggtitle("Alaskan non-Hispanic White Mortality Rate Hypothesis Testing Posterior Power")
 

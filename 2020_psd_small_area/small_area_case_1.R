@@ -273,11 +273,14 @@ nmr = c(
 tres = data.frame(
   t(replicate(n_sim, chi2_state_sample_stats(create_private_query(2))))
 )
-names(tres) <- c("PosteriorMode", "TrueValue", "Naive", "PostProcessed")
-
+names(tres) <- c("ConstrainedPosterior", "TrueValue", "Naive", "PostProcessed")
 chi2_true = tres[1, "TrueValue"]
+
+tres_stacked = stack(tres[, c("Naive", "PostProcessed", "ConstrainedPosterior")])
+tres_stacked$ind = as.factor(tres_stacked$ind)
+
 chi2_summary = as.data.frame(
-  stack(tres[, c("PosteriorMode", "Naive", "PostProcessed")]) %>%
+  tres_stacked %>%
     group_by(ind) %>% summarize(
       SampleMSE=mean((values - chi2_true)**2),
       SampleVar=var(values),
@@ -288,9 +291,9 @@ chi2_summary = as.data.frame(
 chi2_summary[, c("SampleMSE", "SampleVar", "SampleBias2")] = (
   round(chi2_summary[, c("SampleMSE", "SampleVar", "SampleBias2")], 0)
 )
-print(xtable(chi2_summary), include.rownames=FALSE)
+print(xtable(chi2_summary, digits=0), include.rownames=FALSE)
 
-ggplot(stack(tres[, c("PosteriorMode", "Naive", "PostProcessed")])) + 
+ggplot(tres_stacked) + 
   geom_histogram(aes(x=values, y=..density..), bins=20) + 
   geom_vline(xintercept=tres[1, "TrueValue"], color="red") + 
   facet_grid(rows=vars(ind)) + 
