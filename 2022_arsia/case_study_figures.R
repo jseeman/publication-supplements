@@ -432,8 +432,23 @@ post_cis = data.frame(
     qbeta(c(.025, .975), x_obs + .5, n_char - x_obs + .5)
   )
 )
+
 post_cis$Epsilon = c("Eps=.01", "Eps=.03", "Eps=.10", "Eps=Infty")
-names(post_cis) = c("upper", "lower", "Epsilon")
+names(post_cis) = c("lower", "upper", "Epsilon")
+post_cis$width = post_cis$upper - post_cis$lower
+
+post_cis_util = post_cis %>%
+  add_row(upper=1, lower=0, Epsilon="Eps=0", width=1)
+post_cis_util$Epsilon = factor(
+  post_cis_util$Epsilon, 
+  levels=c("Eps=0", "Eps=.01", "Eps=.03", "Eps=.10", "Eps=Infty")
+)
+
+risk_utility = ggplot(data=post_cis_util, mapping=aes(x=Epsilon, y=width)) + 
+  geom_line(group=1, color="blue") + 
+  geom_point() + 
+  xlab("PLB") + 
+  ylab("Credible interval width") 
 
 exp_posts = ggplot(data=data.frame(Epsilon=rep(c("Eps=.01", "Eps=.03", "Eps=.10", "Eps=Infty"), 
                                                each=1e4),
@@ -451,13 +466,14 @@ exp_posts = ggplot(data=data.frame(Epsilon=rep(c("Eps=.01", "Eps=.03", "Eps=.10"
   xlab("Theta") + 
   ylab("p(Theta | S(D))")
 
-exp_util_plots = grid.arrange(exp_cond, exp_lik, exp_posts, ncol=1)
+exp_util_plots = grid.arrange(exp_lik, exp_posts, risk_utility, ncol=1)
 ggsave("count_fp_util_lik.svg", 
        plot=exp_util_plots,
        device="svg", width=4, height=5, limitsize=FALSE)
 ggsave("count_fp_util_lik.png", 
        plot=exp_util_plots,
        device="png", width=4, height=5, limitsize=FALSE)
+
 
 # ----------------------------------------------------------------------------------
 # Figure 5: DP posterior disclosure risks
